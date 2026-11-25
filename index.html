@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rig Price Watch: where PC part prices are headed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070a12; --panel:#0f1523; --line:#1d2640; --text:#e9edf8; --muted:#8c97b6;
+  --up:#ff5b4d; --down:#38e0a0; --flat:#f5c451; --accent:#7b6cff; --accent2:#22d3ee;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:16px/1.6 Inter,system-ui,sans-serif;
+  background-image:radial-gradient(900px 500px at 85% -10%,rgba(123,108,255,.22),transparent 60%),radial-gradient(700px 400px at -5% 10%,rgba(34,211,238,.12),transparent 60%);
+  background-repeat:no-repeat}
+h1,h2,h3,.num{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header{padding:28px 0 8px;display:flex;justify-content:space-between;align-items:center}
+.logo{font:700 20px "Space Grotesk",sans-serif;display:flex;gap:10px;align-items:center}
+.logo i{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 18px var(--accent)}
+.stamp{color:var(--muted);font-size:14px}
+h1{font-size:clamp(34px,6vw,64px);line-height:1.04;max-width:16ch;margin:36px 0 14px}
+.lede{color:var(--muted);max-width:60ch;font-size:18px}
+
+/* chart */
+.chart-card{margin-top:36px;background:linear-gradient(180deg,#121a2e,var(--panel));border:1px solid var(--line);border-radius:22px;padding:20px 20px 12px;box-shadow:0 30px 80px -30px rgba(123,108,255,.45)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:999px;font:500 15px Inter,sans-serif;cursor:pointer;transition:.18s}
+.tab:hover{color:var(--text);border-color:#3a4670}
+.tab[aria-selected=true]{background:var(--text);color:#0a0e1a;border-color:var(--text)}
+.tab:focus-visible,.btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.verdict{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+.verdict h2{font-size:clamp(24px,3.4vw,36px);display:flex;align-items:center;gap:12px}
+.pill{font:600 14px Inter,sans-serif;padding:4px 12px;border-radius:999px;letter-spacing:0}
+.pill.up{background:rgba(255,91,77,.15);color:var(--up)}
+.pill.down{background:rgba(56,224,160,.15);color:var(--down)}
+.pill.flat{background:rgba(245,196,81,.15);color:var(--flat)}
+.facts{display:flex;gap:28px}
+.fact b{display:block;font:700 28px "Space Grotesk",sans-serif}
+.fact span{color:var(--muted);font-size:13px}
+.why{color:var(--muted);max-width:75ch;margin:6px 0 10px}
+.plot{position:relative}
+svg{width:100%;height:auto;display:block;overflow:visible}
+.grid line{stroke:var(--line);stroke-width:1}
+.axis text{fill:var(--muted);font:12px Inter,sans-serif}
+.tip{position:absolute;pointer-events:none;background:#0a0f1c;border:1px solid #2b365a;border-radius:12px;padding:8px 12px;font-size:13px;opacity:0;transform:translate(-50%,-110%);transition:opacity .12s;white-space:nowrap;z-index:2}
+.tip b{font:700 18px "Space Grotesk",sans-serif;display:block}
+.legend{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:13px;padding:6px 4px 8px}
+.legend span{display:flex;align-items:center;gap:8px}
+.sw{width:22px;height:0;border-top:3px solid var(--accent2)}
+.sw.d{border-top-style:dashed;border-color:var(--accent)}
+.sw.b{height:10px;border:0;background:rgba(123,108,255,.28);border-radius:3px}
+
+/* sections */
+section{padding:64px 0 0}
+section>h2{font-size:clamp(26px,3.6vw,38px);margin-bottom:8px}
+section>p.sub{color:var(--muted);margin-bottom:26px;max-width:62ch}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+.stat .was{color:var(--muted);font-size:14px}
+.stat .now{font:700 38px "Space Grotesk",sans-serif;color:var(--up);margin:2px 0}
+.stat .name{font-weight:600}
+.outlook{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.ocard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:.18s}
+.ocard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.ocard .arrow{font:700 30px "Space Grotesk",sans-serif}
+.ocard .arrow.up{color:var(--up)}.ocard .arrow.down{color:var(--down)}.ocard .arrow.flat{color:var(--flat)}
+.ocard small{color:var(--muted);display:block}
+.news{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.item time{color:var(--muted);font-size:14px}
+.item h3{font-size:18px;margin-bottom:2px}
+.item p{color:var(--muted);font-size:15px}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:999px;margin-right:8px;background:#1b2440;color:#aebbff}
+.buy{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.buy div{border-left:3px solid var(--accent);padding:4px 0 4px 16px}
+.buy b{display:block;font-family:"Space Grotesk",sans-serif;font-size:19px}
+.buy span{color:var(--muted);font-size:15px}
+footer{margin:72px 0 40px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;max-width:80ch}
+footer a{color:#aebbff}
+nav{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+nav a{text-decoration:none}nav a:hover{color:var(--text)}
+.tw{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px}
+table{width:100%;border-collapse:collapse;min-width:720px;font-size:15px}
+th{font-weight:500;color:var(--muted);text-align:left;padding:14px 16px;font-size:13px;border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid #151d33;vertical-align:middle}
+tr:last-child td{border:0}
+.bar{height:8px;border-radius:5px;background:#1b2440;min-width:90px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--flat),var(--up))}
+.pc{font:700 15px "Space Grotesk",sans-serif;color:var(--up)}
+.lk{font-size:13px;color:#aebbff;margin-right:10px;text-decoration:none;white-space:nowrap}
+.lk:hover{text-decoration:underline}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.card .cat{color:var(--muted);font-size:13px}.card h3{font-size:18px}.card .pr{font:700 26px "Space Grotesk",sans-serif}
+.card .pr s{font:400 14px Inter;color:var(--muted);margin-left:6px}.card p{color:var(--muted);font-size:14px;flex:1}
+.st{font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;display:inline-block;margin-bottom:6px;width:fit-content}
+.st.r{background:rgba(255,91,77,.15);color:var(--up)}.st.y{background:rgba(245,196,81,.15);color:var(--flat)}.st.g{background:rgba(56,224,160,.15);color:var(--down)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px}
+.two h3{font-size:22px;margin-bottom:12px}
+.bld{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start}
+.slots{display:grid;gap:10px}
+.slot{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:92px 1fr auto;gap:12px;align-items:center}
+.slot label{color:var(--muted);font-size:14px}
+select{width:100%;background:#0a0f1c;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px Inter,sans-serif}
+select:focus-visible{outline:2px solid var(--accent2)}
+.sp{font:700 16px "Space Grotesk",sans-serif;min-width:64px;text-align:right}
+.sum{position:sticky;top:16px;background:linear-gradient(180deg,#151d36,var(--panel));border:1px solid #2b365a;border-radius:20px;padding:22px;box-shadow:0 30px 70px -30px rgba(123,108,255,.5)}
+.sum .tot{font:700 46px "Space Grotesk",sans-serif;line-height:1.1}
+.sum .row{display:flex;justify-content:space-between;color:var(--muted);font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.sum .row b{color:var(--text)}
+.warn{background:rgba(245,196,81,.12);color:var(--flat);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:10px}
+.btn{background:transparent;border:1px solid var(--line);color:var(--text);padding:7px 14px;border-radius:999px;font:500 14px Inter,sans-serif;cursor:pointer;margin:0 8px 8px 0}
+.btn:hover{border-color:var(--accent)}
+.fine{color:var(--muted);font-size:13px;margin-top:12px}
+.pick{margin:0 0 14px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#0c1220;display:none}
+.pick .grp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.pick .grp>span{color:var(--muted);font-size:13px;min-width:62px}
+.chip{background:transparent;border:1px solid var(--line);color:var(--text);padding:6px 13px;border-radius:10px;font:500 14px Inter,sans-serif;cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed=true]{background:linear-gradient(135deg,var(--accent),#5b8cff);border-color:transparent;color:#fff}
+.chip:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.empty{display:none;text-align:center;padding:70px 20px;color:var(--muted);border:1px dashed #2b365a;border-radius:16px;margin:8px 0}
+.empty b{display:block;font:700 24px "Space Grotesk",sans-serif;color:var(--text);margin-bottom:6px}
+#shop{margin:0 0 6px}
+.sim{display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:14px 0 0;font-size:14px;color:var(--muted)}
+.sim input{accent-color:var(--accent);width:160px}.sim b{color:var(--text);min-width:44px}
+.vrow{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.vrow .rk{font:700 18px "Space Grotesk",sans-serif;color:var(--accent2)}.vrow .bar{margin-top:6px}.vrow .bar i{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.vrow .st{margin:0 0 0 8px}.good{background:rgba(56,224,160,.12);color:var(--down);border-radius:12px;padding:10px 14px;font-size:14px;margin-top:10px}
+@media(max-width:820px){.bld,.two{grid-template-columns:1fr}.sum{position:static}.slot{grid-template-columns:1fr auto}.slot label{grid-column:1/-1}}
+@media(max-width:620px){.item{grid-template-columns:1fr;gap:4px}.facts{gap:20px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><i></i>Rig Price Watch</div>
+    <nav><a href="#gpus">GPU tracker</a><a href="#value">Best value</a><a href="#upcoming">Upcoming</a><a href="#launches">Launch watch</a><a href="#popular">Popular parts</a><a href="#builder">PC builder</a><a href="#news">News</a><span class="stamp">Nov 23, 2026</span></nav>
+  </header>
+
+  <h1>PC parts keep getting pricier. Here's what comes next.</h1>
+  <p class="lede">AI data centers are soaking up memory and chip supply, and gaming hardware is paying for it. Pick a part to see how far prices have climbed and where they're likely headed through 2027.</p>
+
+  <div class="chart-card">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="pick" id="pick"></div>
+    <div class="verdict">
+      <h2><span id="cname"></span><span class="pill" id="cpill"></span></h2>
+      <div class="facts">
+        <div class="fact"><b id="f1"></b><span id="f1l"></span></div>
+        <div class="fact"><b id="f2"></b><span id="f2l"></span></div>
+      </div>
+    </div>
+    <p class="why" id="why"></p>
+    <div id="shop"></div>
+    <div class="plot" id="plot"><div class="empty" id="empty"><b>Pick a part to see its price outlook</b>Choose a brand above, then a model. Prices differ a lot by part.</div><svg id="svg" viewBox="0 0 960 400" role="img" aria-label="Price index chart"></svg><div class="tip" id="tip"></div></div>
+    <div class="legend">
+      <span><i class="sw"></i>Observed street price</span>
+      <span><i class="sw d"></i>Expected path</span>
+      <span><i class="sw b"></i>Likely range</span>
+      <span>Prices in US dollars</span>
+    </div>
+  </div>
+
+  <section>
+    <h2>Where prices are today</h2>
+    <p class="sub">Lowest US listings reported in November 2026, against what these parts were supposed to cost.</p>
+    <div class="stats">
+      <div class="stat"><div class="name">RTX 5080</div><div class="now">$2,000+</div><div class="was">Launch price $999. Some premium models are listed above $2,200.</div></div>
+      <div class="stat"><div class="name">RTX 5070 Ti</div><div class="now">$1,500</div><div class="was">Launch price $749. Roughly double.</div></div>
+      <div class="stat"><div class="name">32GB DDR5 RAM</div><div class="now">$394</div><div class="was">About $91 a year ago.</div></div>
+      <div class="stat"><div class="name">Samsung 990 Pro 2TB</div><div class="now">$389+</div><div class="was">Around $119 a year ago. Some listings run higher.</div></div>
+    </div>
+  </section>
+
+  <section id="gpus">
+    <h2>Every mid-range to high-end GPU</h2>
+    <p class="sub">Not just the 5080. Lowest US prices I found this month against launch price, with where each card is heading.</p>
+    <div class="tw"><table><thead><tr><th>Card</th><th>Launch</th><th>Street now</th><th>Over launch</th><th>Next 3 months</th><th>Search</th></tr></thead><tbody id="gt"></tbody></table></div>
+    <p class="fine">Prices marked ~ come from earlier tracker snapshots and may be stale. Street prices are the lowest listings reported, not averages.</p>
+  </section>
+
+  <section id="value">
+    <h2>Best value right now</h2>
+    <p class="sub">Ranked by approximate gaming speed per dollar at today's street prices. Rankings re-sort whenever a price changes, and a card that falls to or below launch price is flagged.</p>
+    <div id="radar"></div>
+    <div class="sim"><label for="simsel">Try a price move</label><select id="simsel" style="width:auto"></select><input type="range" id="simr" min="-40" max="40" value="0" aria-label="Price change percent"><b id="simv">0%</b><button class="btn" id="simx" style="margin:0">Reset</button></div>
+    <div class="two"><div><h3>Graphics cards</h3><div class="news" id="vg"></div></div><div><h3>Processors</h3><div class="news" id="vc"></div></div></div>
+    <p class="fine">Speed scores are my rough estimates (GPUs relative to the RX 9070 XT at 1440p, CPUs relative to the 9800X3D in games), and 8GB cards are marked down 15% for limited VRAM. CPU value ignores heavy multi-core work, where the 9950X3D does better.</p>
+  </section>
+
+  <section id="upcoming">
+    <h2>Upcoming GPUs and price-drop watch</h2>
+    <p class="sub">Short version: no new gaming GPU is expected to push prices down soon.</p>
+    <div class="cards" id="up"></div>
+    <div class="two">
+      <div><h3>What could pull prices down</h3><div class="news" id="down"></div></div>
+      <div><h3>What keeps them high</h3><div class="news" id="hold"></div></div>
+    </div>
+  </section>
+
+  <section id="launches">
+    <h2>Launch watch: catching MSRP on day one</h2>
+    <p class="sub">No new gaming GPU has an announced price yet. Here's what's expected and how to improve your odds when one arrives.</p>
+    <div class="cards">
+      <div class="card"><span class="st r">Low chance of MSRP stock</span><h3>RTX 50 Super</h3><p>January 2027 at the earliest, and reportedly shelved. MSRP not announced. Memory costs make a low list price unlikely.</p></div>
+      <div class="card"><span class="st y">Medium chance</span><h3>AMD's first RDNA 5 chip</h3><p>A single mid-range chip is rumored for 2027, tied to Xbox Project Helix. MSRP not announced. AMD has held closer to list price than Nvidia.</p></div>
+      <div class="card"><span class="st y">Unknown</span><h3>RTX 60 and full RDNA 5</h3><p>Reportedly 2028. Too far out to plan around, but the first weeks of a new generation are when list price is most reachable.</p></div>
+      <div class="card"><span class="st r">Unlikely</span><h3>Intel Arc B770</h3><p>Never released, and no date has been given. A gaming Celestial card is reportedly cancelled.</p></div>
+    </div>
+    <div class="buy" style="margin-top:26px">
+      <div><b>Go to first-party listings first</b><span>Founders Edition cards and a partner's base model are the likeliest to carry list price, though they sell out fastest.</span></div>
+      <div><b>Check stores that sell in person</b><span>Micro Center and Best Buy often put launch stock on shelves, sometimes with purchase limits. Check each store's launch policy.</span></div>
+      <div><b>Skip marketplace sellers</b><span>Third-party listings on launch day are where the big markups show up. Compare against the MSRP before you click buy.</span></div>
+      <div><b>Set alerts and plan the time</b><span>Know the announced on-sale time, sign in ahead, and save your payment details so checkout takes seconds.</span></div>
+    </div>
+  </section>
+
+  <section id="popular">
+    <h2>Most popular parts right now</h2>
+    <p class="sub">The parts builders are actually buying, with current prices and shortcuts to Micro Center and Best Buy searches.</p>
+    <div class="cards" id="pop"></div>
+  </section>
+
+  <section id="builder">
+    <h2>Build your PC</h2>
+    <p class="sub">Pick parts to see today's total and where the price is expected to be in August 2027.</p>
+    <div id="presets"></div>
+    <div class="bld"><div class="slots" id="slots"></div><aside class="sum" id="sum"></aside></div>
+    <p class="fine">Prices marked est. are my estimates because I found no tracked data for them. Retailer links are plain searches, so check stock and the final price there.</p>
+  </section>
+
+  <section>
+    <h2>The outlook, part by part</h2>
+    <p class="sub">Select a card to load its chart.</p>
+    <div class="outlook" id="outlook"></div>
+  </section>
+
+  <section id="news">
+    <h2>Recent news</h2>
+    <p class="sub">The stories behind the forecast.</p>
+    <div class="news">
+      <div class="item"><time>Nov 12</time><div><h3><span class="tag">GPU</span>Jensen Huang steps down as Nvidia CEO</h3><p>CFO Colette Kress is interim CEO. Japanese RTX 5090 and 5080 prices then fell up to 22% and about 17%, but US prices haven't followed.</p></div></div>
+      <div class="item"><time>Nov 15</time><div><h3><span class="tag">GPU</span>RTX 5090 prices dip in Japan</h3><p>Prices reportedly fell up to 22% there after Jensen Huang stepped down as Nvidia CEO. The cuts appear limited to Japan so far.</p></div></div>
+      <div class="item"><time>Nov 12</time><div><h3><span class="tag">GPU</span>RTX 5080 24GB reportedly scrapped</h3><p>Costly 3GB GDDR7 modules are cited as the reason, so the 16GB card stays on top for now. No relief is coming from a new SKU.</p></div></div>
+      <div class="item"><time>Nov 11</time><div><h3><span class="tag">GPU</span>MSI hike could add up to $1,200 to the RTX 5080</h3><p>A report from China also lists up to $600 more for the RTX 5070 Ti. Treat the top of that range as a worst case.</p></div></div>
+      <div class="item"><time>Nov 2</time><div><h3><span class="tag">GPU</span>Makers push retailers toward older cards</h3><p>Supply of RTX 50 cards is described as extremely limited, so vendors are steering buyers to models like the RTX 3060.</p></div></div>
+      <div class="item"><time>Nov</time><div><h3><span class="tag">GPU</span>Asus and Gigabyte raise prices again</h3><p>Second increase of the year across RTX 50 and Radeon RX 9000 cards, as memory costs keep climbing.</p></div></div>
+      <div class="item"><time>Q4</time><div><h3><span class="tag">RAM</span>PC DRAM up 13–18% this quarter</h3><p>TrendForce expects PC memory supply to shrink in 2027 as capacity shifts toward servers. SSD contract prices are rising more slowly, under 5%.</p></div></div>
+      <div class="item"><time>Oct</time><div><h3><span class="tag">RAM</span>Bernstein sees +43% in 2027, then a drop</h3><p>Memory price per gigabit is forecast to rise next year and fall about 53% in 2028, though not all the way back to pre-crisis levels.</p></div></div>
+      <div class="item"><time>Oct</time><div><h3><span class="tag">CPU</span>Intel reportedly planning another 10% hike</h3><p>Intel already lifted the Core Ultra 7 270K Plus from $299 to $349 in July. AMD's Ryzen 7 9800X3D has stayed near $445.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What this means if you're building</h2>
+    <div class="buy" style="margin-top:20px">
+      <div><b>Buy the GPU you need now</b><span>Every source points to higher or flat prices through mid-2027. Waiting for a dip is a gamble.</span></div>
+      <div><b>Get RAM and SSD soon</b><span>Both are forecast to keep rising next year, and relief is not expected before 2028.</span></div>
+      <div><b>CPU and PSU can wait</b><span>Prices are mostly stable. The 9800X3D has barely moved, so no need to rush.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Charts show US dollar prices. Nov 2025 and today are approximate lowest street prices from retail trackers, the points between them are interpolated, and older-card prices come from tracker snapshots that vary by date and seller, and the expected path is my own judgment based on analyst forecasts from TrendForce, Bernstein and Samsung. The PSU line is an estimate because I found no tracked data for it. Forecasts can be wrong, and this isn't financial advice. Sources include <a href="https://www.tomshardware.com">Tom's Hardware</a>, <a href="https://wccftech.com/msi-planned-rtx-5080-price-hike-of-up-to-1200/">Wccftech</a>, <a href="https://www.notebookcheck.net">Notebookcheck</a>, <a href="https://www.techspot.com/news/111336-absurd-gpu-pricing-update-q1-2026-edition.html">TechSpot</a> and <a href="https://www.pcgamer.com">PC Gamer</a>.</p>
+  </footer>
+</div>
+
+<script>
+const X=["Nov 25","Feb 26","May 26","Aug 26","Nov 26","Feb 27","May 27","Aug 27","Nov 27"], NOW=4;
+const D={
+ gpu:{n:"GPUs",dir:"up",label:"Rising",
+  s:[100,122,138,152,166,190,214,228,224], lo:[166,176,190,198,190], hi:[166,206,240,260,262],
+  why:"RTX 50 cards cost about 66% more than a year ago in German tracking, and US RTX 5080 listings run roughly double MSRP. Memory costs and AI demand are the drivers, and no new supply is coming. Expect further increases into mid-2027, with a possible plateau late in the year.",
+  f1:["~$2,000+","RTX 5080 today"],f2:["+37%","expected by Aug 2027"],eg:"RTX 5080, 5070 Ti"},
+ ram:{n:"RAM",dir:"up",label:"Rising",
+  s:[100,240,330,400,430,475,525,560,520], lo:[430,440,470,490,430], hi:[430,505,590,650,640],
+  why:"A 32GB DDR5 kit went from about $91 to $394 in a year. TrendForce expects PC DRAM supply to shrink in 2027 and Samsung expects the shortage to worsen. Bernstein sees prices easing in 2028, so the peak is likely next year.",
+  f1:["~$394","32GB DDR5 today"],f2:["+30%","expected by Aug 2027"]},
+ ssd:{n:"SSDs",dir:"up",label:"Rising slowly",
+  s:[100,150,230,290,330,345,360,365,340], lo:[330,335,340,335,300], hi:[330,355,385,400,395],
+  why:"Flash prices rose sharply this year, but the pace is cooling. TrendForce expects client SSD contract prices to rise under 5% this quarter. Expect a plateau with some risk of another bump as DRAM stays tight.",
+  f1:["~$389+","2TB 990 Pro today"],f2:["+11%","expected by Aug 2027"]},
+ cpu:{n:"CPUs",dir:"flat",label:"Mild increases",
+  s:[100,102,112,116,118,122,126,128,127], lo:[118,118,120,121,118], hi:[118,127,135,140,142],
+  why:"Intel has raised prices roughly 15–20% on some chips, and another 10% increase is reportedly planned. AMD's popular 9800X3D has stayed flat around $445. Expect modest increases, with Intel moving more than AMD.",
+  f1:["~$445","Ryzen 7 9800X3D"],f2:["+8%","expected by Aug 2027"]},
+ psu:{n:"PSUs",dir:"flat",label:"Roughly flat",
+  s:[100,101,103,105,106,108,110,111,111], lo:[106,105,107,108,107], hi:[106,111,114,117,118],
+  why:"Power supplies don't use scarce memory, so they've been mostly spared. I found no tracked data here, so this line is an estimate. Expect small, steady increases from component and shipping costs.",
+  f1:["Stable","no memory exposure"],f2:["+5%","expected by Aug 2027"]}
+};
+const $=id=>document.getElementById(id), NS="http://www.w3.org/2000/svg";
+const W=960,H=400,P={l:68,r:20,t:20,b:36};
+let cur="gpu";
+const dirText={up:"↑",down:"↓",flat:"→"};
+
+function tabs(){
+  $("tabs").innerHTML=Object.keys(D).map(k=>`<button class="tab" role="tab" data-k="${k}" aria-selected="${k===cur}">${D[k].n}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>show(b.dataset.k));
+  $("outlook").innerHTML=Object.keys(D).map(k=>{const d=D[k],p=Math.round((d.s[7]/d.s[NOW]-1)*100);
+    return `<button class="ocard" data-k="${k}"><div class="arrow ${d.dir}">${dirText[d.dir]} ${p>0?"+":""}${p}%</div><b>${d.n}</b><small>${d.label} by Aug 2027</small></button>`}).join("");
+  $("outlook").querySelectorAll("button").forEach(b=>b.onclick=()=>{show(b.dataset.k);$("tabs").scrollIntoView({behavior:"smooth",block:"center"})});
+}
+function path(pts){ // smooth curve
+  let d=`M${pts[0][0]},${pts[0][1]}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    d+=`C${p1[0]+(p2[0]-p0[0])/6},${p1[1]+(p2[1]-p0[1])/6} ${p2[0]-(p3[0]-p1[0])/6},${p2[1]-(p3[1]-p1[1])/6} ${p2[0]},${p2[1]}`;
+  }return d;
+}
+function show(k){
+  cur=k;const pc=k==="gpu"||k==="cpu";$("pick").style.display=pc?"block":"none";if(pc)drawPick(k);
+  const d=chartData(k);
+  if(!d){$("empty").style.display="block";$("svg").style.display="none";$("tip").style.opacity=0;
+    document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.k===k));
+    $("cname").textContent=k==="cpu"?"Processors":"Graphics cards";$("cpill").className="pill";$("cpill").textContent="";
+    $("why").textContent="Every card is on its own price path, so choose the one you're considering.";$("shop").innerHTML="";
+    $("f1").textContent="";$("f1l").textContent="";$("f2").textContent="";$("f2l").textContent="";return}
+  $("empty").style.display="none";$("svg").style.display="block";
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.k===k));
+  $("cname").textContent=d.n;const pl=$("cpill");pl.className="pill "+d.dir;pl.textContent=dirText[d.dir]+" "+d.label;
+  $("why").textContent=d.why;$("shop").innerHTML=d.shop||"";
+  $("f1").textContent=d.f1[0];$("f1l").textContent=d.f1[1];$("f2").textContent=d.f2[0];$("f2l").textContent=d.f2[1];
+  const all=d.s.concat(d.hi,d.lo),[mn,mx]=nice(Math.min(...all)*.96,Math.max(...all)*1.03);
+  const x=i=>P.l+i*(W-P.l-P.r)/8, y=v=>P.t+(1-(v-mn)/(mx-mn))*(H-P.t-P.b);
+  const hist=d.s.slice(0,NOW+1).map((v,i)=>[x(i),y(v)]), fc=d.s.slice(NOW).map((v,i)=>[x(i+NOW),y(v)]);
+  const hi=d.hi.map((v,i)=>[x(i+NOW),y(v)]), lo=d.lo.map((v,i)=>[x(i+NOW),y(v)]).reverse();
+  let g="";const step=(mx-mn)/4;
+  for(let i=0;i<=4;i++){const v=mn+i*step,yy=y(v);g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}"/>`}
+  let ax="";for(let i=0;i<=4;i++){const v=mn+i*step;ax+=`<text x="${P.l-10}" y="${y(v)+4}" text-anchor="end">${usd(v)}</text>`}
+  X.forEach((t,i)=>ax+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${t}</text>`);
+  const col=d.dir==="up"?"#ff5b4d":d.dir==="down"?"#38e0a0":"#f5c451";
+  const bandPts=hi.concat(lo);
+  $("svg").innerHTML=`
+  <defs>
+    <linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#22d3ee" stop-opacity=".35"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></linearGradient>
+    <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#7b6cff"/></linearGradient>
+    <linearGradient id="gb" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7b6cff" stop-opacity=".38"/><stop offset="1" stop-color="#7b6cff" stop-opacity=".08"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g class="grid">${g}</g><g class="axis">${ax}</g>
+  <rect x="${x(NOW)}" y="${P.t}" width="${W-P.r-x(NOW)}" height="${H-P.t-P.b}" fill="#7b6cff" opacity=".05"/>
+  <path d="${path(hist)} L${x(NOW)},${H-P.b} L${x(0)},${H-P.b}Z" fill="url(#ga)"/>
+  <polygon points="${bandPts.map(p=>p.join(",")).join(" ")}" fill="url(#gb)"/>
+  <path id="pf" d="${path(fc)}" fill="none" stroke="#7b6cff" stroke-width="3.5" stroke-dasharray="3 9" stroke-linecap="round" filter="url(#glow)"/>
+  <path id="ph" d="${path(hist)}" fill="none" stroke="url(#gl)" stroke-width="4" stroke-linecap="round" filter="url(#glow)"/>
+  <line x1="${x(NOW)}" x2="${x(NOW)}" y1="${P.t}" y2="${H-P.b}" stroke="#e9edf8" stroke-opacity=".35" stroke-dasharray="4 4"/>
+  <text x="${x(NOW)+8}" y="${P.t+12}" fill="#e9edf8" font-size="12" font-family="Inter">Today</text>
+  <circle cx="${x(NOW)}" cy="${y(d.s[NOW])}" r="7" fill="${col}" stroke="#070a12" stroke-width="3"/>
+  <circle cx="${x(8)}" cy="${y(d.s[8])}" r="5" fill="#7b6cff" stroke="#070a12" stroke-width="3"/>
+  <g id="hov" opacity="0"><line id="hl" y1="${P.t}" y2="${H-P.b}" stroke="#fff" stroke-opacity=".3"/><circle id="hc" r="6" fill="#fff" stroke="#7b6cff" stroke-width="3"/></g>
+  <rect id="hit" x="${P.l}" y="0" width="${W-P.l-P.r}" height="${H}" fill="transparent"/>`;
+  // draw-in
+  const ph=$("ph"),L=ph.getTotalLength();ph.style.strokeDasharray=L;ph.style.strokeDashoffset=L;
+  ph.getBoundingClientRect();ph.style.transition="stroke-dashoffset 1s ease";ph.style.strokeDashoffset=0;
+  const hit=$("hit"),tip=$("tip"),plot=$("plot");
+  const move=e=>{const r=$("svg").getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;
+    const i=Math.max(0,Math.min(8,Math.round((px-P.l)/((W-P.l-P.r)/8))));
+    const cx=x(i),cy=y(d.s[i]);$("hov").setAttribute("opacity",1);$("hl").setAttribute("x1",cx);$("hl").setAttribute("x2",cx);
+    $("hc").setAttribute("cx",cx);$("hc").setAttribute("cy",cy);
+    const pct=Math.round((d.s[i]/d.s[0]-1)*100);
+    tip.innerHTML=`<b>${usd(d.s[i])}</b>${X[i]} · ${i>NOW?"expected":"observed"} · ${pct>0?"+":""}${pct}% vs Nov 25`;
+    tip.style.left=(cx/W*r.width)+"px";tip.style.top=(cy/H*r.height)+"px";tip.style.opacity=1};
+  hit.onpointermove=move;hit.onpointerdown=move;
+  hit.onpointerleave=()=>{tip.style.opacity=0;$("hov").setAttribute("opacity",0)};
+}
+/* ---------- catalog: [id,cat,name,price,ref,est,watts,socket,popular,searchTerm,note] ---------- */
+const C=[
+["g5090","gpu","GeForce RTX 5090",3340,1999,0,575,"",0,"RTX 5090","Often out of stock. Lowest listing seen was $3,340."],
+["g5080","gpu","GeForce RTX 5080",2000,999,0,360,"",1,"RTX 5080","Hikes of up to $1,200 reported for some models."],
+["g5070ti","gpu","GeForce RTX 5070 Ti",1480,749,0,300,"",1,"RTX 5070 Ti","Supply is throttled. Radeon is far cheaper for similar speed."],
+["g5070","gpu","GeForce RTX 5070",800,549,1,250,"",0,"RTX 5070","Last tracker snapshot was near $780."],
+["g5060ti16","gpu","GeForce RTX 5060 Ti 16GB",790,429,1,180,"",0,"RTX 5060 Ti 16GB","Last tracker snapshot was near $790."],
+["g5060ti8","gpu","GeForce RTX 5060 Ti 8GB",500,379,0,180,"",0,"RTX 5060 Ti 8GB","8GB limits newer games."],
+["g5060","gpu","GeForce RTX 5060",449,299,0,145,"",0,"RTX 5060","Entry point for 1080p."],
+["r9070xt","gpu","Radeon RX 9070 XT",960,599,0,304,"",1,"RX 9070 XT","Rivals the 5070 Ti and still costs far less."],
+["r9070","gpu","Radeon RX 9070",935,549,0,220,"",0,"RX 9070","Priced close to the XT, so the XT is the better buy."],
+["r9060xt16","gpu","Radeon RX 9060 XT 16GB",750,349,0,160,"",0,"RX 9060 XT 16GB","16GB at a mid-range price."],
+["g4070s","gpu","GeForce RTX 4070 Super",790,599,0,220,"",0,"RTX 4070 Super","Out of production, so stock is thinning."],
+["g4070","gpu","GeForce RTX 4070",775,549,1,200,"",0,"RTX 4070","Out of production. Another snapshot showed about $670."],
+["g4060ti","gpu","GeForce RTX 4060 Ti 8GB",469,399,0,160,"",0,"RTX 4060 Ti","Out of production."],
+["g4060","gpu","GeForce RTX 4060",460,299,0,115,"",0,"RTX 4060","Out of production."],
+["r7800","gpu","Radeon RX 7800 XT",650,499,0,263,"",0,"RX 7800 XT","Last-gen, so check seller reputation."],
+["r7700","gpu","Radeon RX 7700 XT",429,419,0,245,"",0,"RX 7700 XT","Closest to launch price of any card here."],
+["r7600","gpu","Radeon RX 7600",389,269,0,165,"",0,"RX 7600","Entry card."],
+["c9800","cpu","Ryzen 7 9800X3D",444,479,0,120,"AM5",1,"Ryzen 7 9800X3D","Best gaming CPU for the money, and barely moved in price."],
+["c9950","cpu","Ryzen 9 9950X3D",669,699,0,170,"AM5",1,"Ryzen 9 9950X3D","Gaming plus heavy creative work."],
+["c9600","cpu","Ryzen 5 9600X",220,279,0,65,"AM5",0,"Ryzen 5 9600X","Sometimes sells below launch price."],
+["cu7","cpu","Core Ultra 7 270K Plus",349,299,0,125,"1851",0,"Core Ultra 7 270K Plus","Raised $50 in July, with another 10% rumored."],
+["cu5","cpu","Core Ultra 5 250K Plus",229,199,0,125,"1851",0,"Core Ultra 5 250K Plus","Intel's value pick."],
+["mb850","mobo","B850 ATX (AM5)",200,0,1,0,"AM5",0,"B850 motherboard","Estimate for a mid-range board."],
+["mx870","mobo","X870E ATX (AM5)",330,0,1,0,"AM5",0,"X870E motherboard","Estimate for a high-end board."],
+["mz890","mobo","Z890 ATX (Intel)",260,0,1,0,"1851",0,"Z890 motherboard","Estimate for a mid-range board."],
+["ram1","ram","32GB DDR5-6000 (2×16)",394,91,0,0,"",1,"32GB DDR5 6000","About 4× what it cost a year ago."],
+["ram2","ram","32GB DDR5-6000 CL30 premium",549,89,0,0,"",0,"Crucial Pro 32GB DDR5 6000","Premium kit, same capacity."],
+["ssd1","ssd","Samsung 990 Pro 2TB",389,119,0,0,"",1,"Samsung 990 Pro 2TB","Some listings are much higher."],
+["ssd2","ssd","1TB NVMe Gen4",180,0,1,0,"",0,"1TB NVMe SSD","Estimate."],
+["p850","psu","850W 80+ Gold",150,0,1,850,"",0,"850W gold power supply","Estimate."],
+["p1000","psu","1000W 80+ Gold",200,0,1,1000,"",0,"1000W gold power supply","Estimate."],
+["p1200","psu","1200W ATX 3.1",260,0,1,1200,"",0,"1200W ATX 3.1 power supply","Estimate. Suits an RTX 5090."],
+["k1","cool","Dual-tower air cooler",45,0,1,0,"",0,"dual tower CPU cooler","Estimate."],
+["k2","cool","360mm liquid cooler",110,0,1,0,"",0,"360mm AIO cooler","Estimate."],
+["cs1","case","Airflow mid-tower",95,0,1,0,"",0,"mid tower PC case","Estimate."],
+["cs2","case","Premium glass mid-tower",150,0,1,0,"",0,"premium PC case","Estimate."]];
+const M={gpu:1.37,ram:1.30,ssd:1.10,cpu:1.08,psu:1.05,mobo:1.03,cool:1.03,case:1.03};
+const L={gpu:"GPU",cpu:"CPU",mobo:"Motherboard",ram:"Memory",ssd:"Storage",psu:"Power supply",cool:"Cooler",case:"Case"};
+const by={};C.forEach(r=>by[r[0]]={id:r[0],cat:r[1],n:r[2],p:r[3],ref:r[4],est:r[5],w:r[6],sk:r[7],pop:r[8],q:r[9],note:r[10]});
+const $$=(s,h)=>$(s).innerHTML=h, usd=n=>"$"+Math.round(n).toLocaleString("en-US");
+const mc=q=>`https://www.microcenter.com/search/search_results.aspx?Ntt=${encodeURIComponent(q)}`, bb=q=>`https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(q)}`;
+const links=q=>`<a class="lk" href="${mc(q)}" target="_blank" rel="noopener">Micro Center</a><a class="lk" href="${bb(q)}" target="_blank" rel="noopener">Best Buy</a>`;
+
+/* GPU tracker */
+const GT={g5090:["Rising","u","Scarce. No US relief yet."],g5080:["Rising","u","More hikes reported."],g5070ti:["Rising","u","Supply may dry up."],g5070:["Rising slowly","m","Mid-range holds up better."],g5060ti16:["Rising slowly","m","16GB models are in demand."],g5060ti8:["Rising slowly","m","8GB is the weak spot. AMD has 16GB for less."],g5060:["Rising slowly","m","Older-gen push may help."],r9070xt:["Rising slowly","m","Best value in the range."],r9070:["Rising slowly","m","Check the XT price first."],r9060xt16:["Rising slowly","m","Steady."],g4070s:["Rising slowly","m","Stock is drying up."],g4070:["Rising slowly","m","Mostly resellers now."],g4060ti:["Rising slowly","m","Poor value at this price."],g4060:["Rising slowly","m","Poor value at this price."],r7800:["Rising slowly","m","Check the seller."],r7700:["Rising slowly","m","Mildest increase."],r7600:["Rising slowly","m","Cheap but weak."]};
+$$("gt",C.filter(r=>r[1]=="gpu").map(r=>{const g=by[r[0]],o=Math.round((g.p/g.ref-1)*100),t=GT[g.id];
+ return `<tr><td><b>${g.n}</b></td><td>${usd(g.ref)}</td><td class="num">${g.est?"~":""}${usd(g.p)}</td><td><span class="pc">+${o}%</span><div class="bar"><i style="width:${Math.min(100,o/2)}%"></i></div></td><td><span class="pill ${t[1]=="u"?"up":"flat"}">${t[1]=="u"?"↑":"↗"} ${t[0]}</span><br><small style="color:var(--muted)">${t[2]}</small></td><td>${links(g.q)}</td></tr>`}).join(""));
+
+/* Upcoming + drivers */
+const UP=[["r","Delayed or cancelled","RTX 50 Super","Reportedly shelved because of memory costs. One outlet says CES in January 2027, but Nvidia hasn't confirmed anything."],
+["r","Scrapped","RTX 5080 24GB","Reported Nov 12 as cancelled, with 3GB GDDR7 modules cited as too costly. The 16GB card stays on top."],
+["y","Late 2027 to 2028","AMD RDNA 5","Leakers expect one mid-range chip in 2027 and the full lineup in 2028."],
+["y","2028","Nvidia RTX 60 (Rubin)","Reportedly pushed back again, so there's no next-gen price reset soon."],
+["r","Unlikely","Intel Arc B770","Never released, and a gaming Celestial card is reportedly cancelled."]];
+$$("up",UP.map(u=>`<div class="card"><span class="st ${u[0]}">${u[1]}</span><h3>${u[2]}</h3><p>${u[3]}</p></div>`).join(""));
+const it=(t,p,g)=>`<div class="item" style="grid-template-columns:1fr"><div><h3>${t}</h3><p>${p}</p></div></div>`;
+$$("down",[it("Japan price cuts after Huang's exit","RTX 5090 and 5080 listings there fell about 22% and 17% after he stepped down on Nov 12. They haven't spread to the US so far."),
+it("Black Friday and Cyber Monday","Most deals so far are small, but mid-range Radeon and RTX 5060-class cards see the most discounting."),
+it("Buyers hitting a limit","TrendForce notes consumers are pushing back on memory prices. Weak demand is the most likely thing to soften pricing.")].join(""));
+$$("hold",[it("Memory costs","VRAM is the main reason cards cost more, and DRAM isn't expected to ease until 2028."),
+it("The CEO change doesn't fix supply","Analysts say it doesn't alter chip or memory costs. Kress is interim CEO, and a new strategy could favor AI even more."),
+it("No competing launches","With RDNA 5 and Rubin late, Nvidia has little reason to cut prices or release refreshes.")].join(""));
+
+/* Popular */
+$$("pop",C.filter(r=>r[8]).map(r=>{const g=by[r[0]];return `<div class="card"><span class="cat">${L[g.cat]}</span><h3>${g.n}</h3><div class="pr">${usd(g.p)}${g.ref?`<s>${g.cat=="gpu"||g.cat=="cpu"?"launch":"year ago"} ${usd(g.ref)}</s>`:""}</div><p>${g.note}</p><div>${links(g.q)}</div></div>`}).join(""));
+
+/* Builder */
+const sel={};
+const PRE={"1440p value":["r9070xt","c9600","mb850","ram1","ssd1","p850","k1","cs1"],"High-end gaming":["g5080","c9800","mx870","ram1","ssd1","p1000","k2","cs2"],"Flagship":["g5090","c9950","mx870","ram1","ssd1","p1200","k2","cs2"]};
+$$("presets",Object.keys(PRE).map(k=>`<button class="btn" data-p="${k}">${k}</button>`).join("")+`<button class="btn" data-p="">Clear</button>`);
+$$("slots",Object.keys(L).map(c=>`<div class="slot"><label for="s_${c}">${L[c]}</label><select id="s_${c}"><option value="">None</option>${C.filter(r=>r[1]==c).map(r=>`<option value="${r[0]}">${r[2]} · ${r[5]?"est. ":""}${usd(r[3])}</option>`).join("")}</select><span class="sp" id="p_${c}"></span></div>`).join(""));
+function calc(){
+  let now=0,fut=0,ref=0,rows="",lk="";const w=[];
+  Object.keys(L).forEach(c=>{const v=$("s_"+c).value;sel[c]=v?by[v]:null;const g=sel[c];$("p_"+c).textContent=g?usd(g.p):"";
+    if(g){now+=g.p;fut+=g.p*M[c];if(g.ref)ref+=g.p-g.ref;}});
+  const g=sel.gpu,cp=sel.cpu,mb=sel.mobo,ps=sel.psu,wn=[];
+  if(cp&&mb&&cp.sk!==mb.sk)wn.push(`The ${cp.n} needs a ${cp.sk=="AM5"?"AM5":"Intel LGA1851"} board, so pick a matching motherboard.`);
+  if(g&&cp&&ps){const need=Math.ceil((g.w+cp.w+100)*1.3/50)*50;if(ps.w<need)wn.push(`This build wants about ${need}W. Your ${ps.w}W supply is too small.`)}
+  const n=Object.values(sel).filter(Boolean).length,d=fut-now;
+  $$("sum",`<div class="fact"><span>Total today · ${n} of 8 parts</span></div><div class="tot">${usd(now)}</div>
+  <div class="row"><span>Expected Aug 2027</span><b style="color:${d>0?"var(--up)":"var(--down)"}">${usd(fut)} (${d>=0?"+":""}${usd(d)})</b></div>
+  <div class="row"><span>Over launch/year-ago prices*</span><b>+${usd(ref)}</b></div>
+  <div class="row"><span>Verdict</span><b>${n==0?"Pick some parts":d>150?"Buy sooner than later":"Little to gain by waiting"}</b></div>
+  ${wn.map(x=>`<div class="warn">${x}</div>`).join("")}
+  <p class="fine">*Counted for parts with a known launch or year-ago price. The Aug 2027 figure applies each category's forecast to today's price.</p>
+  <div style="margin-top:10px">${Object.keys(L).filter(c=>sel[c]).map(c=>`<div class="row"><span>${sel[c].n}</span><span>${links(sel[c].q)}</span></div>`).join("")}</div>`);
+}
+Object.keys(L).forEach(c=>$("s_"+c).onchange=calc);
+$("presets").onclick=e=>{const k=e.target.dataset&&e.target.dataset.p;if(k===undefined)return;Object.keys(L).forEach(c=>$("s_"+c).value="");(PRE[k]||[]).forEach(id=>$("s_"+by[id].cat).value=id);calc()};
+calc();
+/* GPU picker + dollar chart data */
+const G=[["g5090","Nvidia","RTX 50",2200,20,"Supply is scarce and no US price cuts have appeared."],
+["g5080","Nvidia","RTX 50",1000,30,"Partner hikes of up to $1,200 were reported, and the 24GB version was scrapped."],
+["g5070ti","Nvidia","RTX 50",750,25,"Supply is throttled, so prices could climb further if it disappears."],
+["g5070","Nvidia","RTX 50",520,18,"Mid-range cards are rising more slowly than the top tier."],
+["g5060ti16","Nvidia","RTX 50",400,15,"16GB models are in demand as 8GB cards age."],
+["g5060ti8","Nvidia","RTX 50",319,12,"Was near launch price earlier, but memory costs are pushing it up."],
+["g5060","Nvidia","RTX 50",279,10,"Entry level, so the least exposed to memory costs."],
+["g4070s","Nvidia","RTX 40",560,12,"Out of production. Remaining stock is thinning, and many listings are third-party sellers."],
+["g4070","Nvidia","RTX 40",489,10,"Out of production, so stock is mostly resellers."],
+["g4060ti","Nvidia","RTX 40",329,8,"Out of production, and prices are high for an 8GB card."],
+["g4060","Nvidia","RTX 40",259,6,"Last-gen entry card with prices well above its low."],
+["r9070xt","AMD","RX 9000",600,15,"Costs far less than the 5070 Ti for similar speed, so demand is shifting its way."],
+["r9070","AMD","RX 9000",520,12,"Priced close to the XT, so the XT is usually the better buy."],
+["r9060xt16","AMD","RX 9000",350,12,"The most affordable 16GB card, and demand is rising."],
+["r7800","AMD","RX 7000",430,10,"Last-gen and hard to find new, so watch for resellers."],
+["r7700","AMD","RX 7000",310,8,"Close to launch price, the mildest increase on this list."],
+["r7600","AMD","RX 7000",239,6,"Entry card that has risen from its low."],
+["c9800","AMD","Ryzen 9000",470,2,"The gaming pick hit a US high in March and has sat near $445 since."],
+["c9950","AMD","Ryzen 9000",700,3,"For gaming plus heavy creative work, and slightly under launch price."],
+["c9600","AMD","Ryzen 9000",279,3,"Often sells below launch price, which is rare this year."],
+["cu7","Intel","Core Ultra Plus",299,10,"Launched in March, raised $50 in July, and another 10% increase is rumored."],
+["cu5","Intel","Core Ultra Plus",199,10,"Launched in March and raised $30 in July. Intel is moving prices faster than AMD."]];
+const PERF={g5090:[150,32],g5080:[105,16],g5070ti:[98,16],g5070:[82,12],g5060ti16:[64,16],g5060ti8:[63,8],g5060:[50,8],g4070s:[76,12],g4070:[66,12],g4060ti:[55,8],g4060:[45,8],r9070xt:[100,16],r9070:[88,16],r9060xt16:[62,16],r7800:[70,16],r7700:[60,12],r7600:[38,8],c9800:[100],c9950:[102],c9600:[74],cu7:[90],cu5:[82]};
+const pk={gpu:null,cpu:null},br={gpu:"Nvidia",cpu:"AMD"},BR={gpu:["Nvidia","AMD"],cpu:["AMD","Intel"]};
+function nice(lo,hi){for(let p=1;p<1e7;p*=10)for(const m of[1,2,2.5,5]){const s=m*p,mn=Math.floor(lo/s)*s;if(mn+4*s>=hi)return[mn,mn+4*s]}}
+function drawPick(k){const b=br[k],it=G.filter(x=>by[x[0]].cat===k&&x[1]===b);
+  $("pick").innerHTML=BR[k].map(x=>`<button class="chip" data-b="${x}" aria-pressed="${x===b}">${x}</button>`).join(" ")+
+  [...new Set(it.map(x=>x[2]))].map(sr=>`<div class="grp"><span>${sr}</span>${it.filter(x=>x[2]===sr).map(x=>`<button class="chip" data-g="${x[0]}" aria-pressed="${x[0]===pk[k]}">${by[x[0]].n.replace(/GeForce |Radeon /,"")}</button>`).join("")}</div>`).join("");
+}
+$("pick").onclick=e=>{const t=e.target,k=cur;if(t.dataset.b){br[k]=t.dataset.b;const g=G.find(x=>x[0]===pk[k]);if(g&&g[1]!==br[k])pk[k]=null;show(k)}else if(t.dataset.g){pk[k]=t.dataset.g;show(k)}};
+function chartData(k){
+  if(k!=="gpu"&&k!=="cpu"){const d=D[k],u={ram:91,ssd:119,psu:130}[k],f=a=>a.map(v=>v*u/100),rep={ram:"32GB DDR5 kit",ssd:"2TB Gen4 NVMe",psu:"850W Gold, est."}[k];
+    return Object.assign({},d,{n:d.n+" ("+rep+")",s:f(d.s),lo:f(d.lo),hi:f(d.hi)})}
+  if(!pk[k])return null;
+  const g=G.find(x=>x[0]===pk[k]),c=by[pk[k]],b=g[3],n=c.p,e=g[4],f=[0,.33,.58,.79,1],sh=[0,.5,.8,1,.95],w=[0,.03,.06,.09,.11];
+  const s=f.map(x=>b+(n-b)*x).concat(sh.slice(1).map(x=>n*(1+e/100*x)));
+  const prem=Math.round((n/c.ref-1)*100),up=e>=15;
+  return{n:c.n,dir:up?"up":"flat",label:up?"Rising":e>=4?"Rising slowly":"Roughly flat",s,
+    lo:sh.map((x,j)=>n*(1+e/100*x*.35-w[j])),hi:sh.map((x,j)=>n*(1+e/100*x*1.5+w[j])),
+    why:`${c.n} is ${prem>=0?prem+"% above":Math.abs(prem)+"% below"} its ${usd(c.ref)} launch price. ${g[5]}`,
+    f1:[(c.est?"~":"")+usd(n),"today"],f2:[(e>0?"+":"")+e+"%","expected by Aug 2027 (about "+usd(n*(1+e/100))+")"],shop:links(c.q)};
+}
+/* Best value */
+const SIM={id:null,pct:0},price=id=>by[id].p*(id===SIM.id?1+SIM.pct/100:1);
+const vs=id=>{const q=PERF[id];return q[0]/price(id)*100*(q[1]&&q[1]<10?.85:1)};
+function drawValue(){
+  const ids=Object.keys(PERF),rank=c=>ids.filter(i=>by[i].cat===c).sort((a,b)=>vs(b)-vs(a));
+  const rows=(l,n)=>l.slice(0,n).map((id,i)=>{const g=by[id],p=price(id),o=Math.round((p/g.ref-1)*100),cl=o<=0?"g":o<=10?"y":"r",tx=o<=0?(o<0?Math.abs(o)+"% under launch":"At launch price"):"+"+o+"% over launch";
+    return `<div class="vrow"><span class="rk">${i+1}</span><div><b>${g.n}</b><span class="st ${cl}">${tx}</span><div class="bar"><i style="width:${vs(id)/vs(l[0])*100}%"></i></div></div><span class="sp">${usd(p)}</span></div>`}).join("");
+  const G2=rank("gpu"),C2=rank("cpu");
+  $$("vg",rows(G2,6));$$("vc",rows(C2,5));
+  const rad=(l,t)=>{const lo=l.filter(i=>price(i)<=by[i].ref),cl=l.slice().sort((a,b)=>price(a)/by[a].ref-price(b)/by[b].ref)[0];
+    return lo.length?`<div class="good">${t} at or under launch price: ${lo.map(i=>`<b>${by[i].n}</b> (${usd(price(i))})`).join(", ")}.</div>`:`<div class="good" style="background:rgba(245,196,81,.12);color:var(--flat)">No ${t.toLowerCase()} is at launch price right now. Closest: <b>${by[cl].n}</b> at ${usd(price(cl))}, ${Math.round((price(cl)/by[cl].ref-1)*100)}% over.</div>`};
+  $$("radar",rad(G2,"Graphics cards")+rad(C2,"Processors"));
+}
+$$("simsel",'<option value="">Choose a part</option>'+Object.keys(PERF).map(i=>`<option value="${i}">${by[i].n}</option>`).join(""));
+const sim=()=>{SIM.id=$("simsel").value||null;SIM.pct=+$("simr").value;$("simv").textContent=(SIM.pct>0?"+":"")+SIM.pct+"%";drawValue()};
+$("simsel").onchange=sim;$("simr").oninput=sim;$("simx").onclick=()=>{$("simsel").value="";$("simr").value=0;sim()};
+drawValue();
+tabs();show("gpu");
+</script>
+</body>
+</html>
